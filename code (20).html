@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats Adventure Quest - Retro Pixel Edition</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Anime.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+
+    <style>
+        /* --- Global Styles - Retro Pixel Theme --- */
+        :root {
+            --primary-color: #4ecdc4; /* Teal/Cyan Accent */
+            --secondary-color: #f0e68c; /* Soft Yellow/Khaki Accent */
+            --background-color: #1a2a3a; /* Dark Desaturated Blue */
+            --card-bg: #2a3a4a; /* Slightly Lighter Dark Blue */
+            --text-color: #e0e0e0; /* Light Grey/Off-white */
+            --muted-text: #a0a0a0; /* Medium Grey */
+            --border-color: #445464; /* Mid Dark Blue/Grey for borders */
+            --code-bg: #111820; /* Very Dark Grey/Blue for code */
+            --header-font: 'Press Start 2P', cursive;
+            --body-font: 'VT323', monospace; /* Pixel font */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--body-font);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.8;
+            font-size: 20px;
+            padding-top: 70px;
+        }
+
+        /* --- Desktop Navigation (Hidden on Mobile) --- */
+        #desktop-nav {
+            background-color: var(--card-bg);
+            padding: 0.8rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+            border-bottom: 2px solid var(--border-color);
+        }
+        #desktop-nav ul { list-style: none; display: flex; justify-content: center; flex-wrap: wrap; padding: 0 0.5rem; }
+        #desktop-nav ul li { margin: 0.2rem 0.5rem; }
+        #desktop-nav ul li a { color: var(--text-color); text-decoration: none; padding: 0.5rem 0.8rem; border-radius: 4px; transition: background-color 0.2s ease, color 0.2s ease; font-size: 18px; border: 1px solid transparent; }
+        #desktop-nav ul li a:hover { background-color: var(--secondary-color); color: #111; border-color: var(--secondary-color); }
+        #desktop-nav ul li a.active { background-color: var(--primary-color); color: #111; border-color: var(--primary-color); }
+
+        /* --- Mobile Header & Menu Toggle --- */
+        #mobile-header { display: none; background-color: var(--card-bg); padding: 0.8rem 1rem; position: fixed; top: 0; width: 100%; z-index: 1050; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4); border-bottom: 2px solid var(--border-color); justify-content: space-between; align-items: center; }
+        #menu-toggle { background: none; border: 2px solid var(--primary-color); color: var(--primary-color); font-size: 24px; cursor: pointer; padding: 5px 10px; border-radius: 4px; transition: background-color 0.2s, color 0.2s; }
+        #menu-toggle:hover { background-color: var(--primary-color); color: #111; }
+        #mobile-header-title { font-family: var(--header-font); font-size: 14px; color: var(--primary-color); }
+
+        /* --- Sidebar Navigation (Hidden on Desktop) --- */
+        #sidebar-nav { position: fixed; top: 0; left: 0; height: 100%; width: 260px; background-color: var(--card-bg); z-index: 1100; transform: translateX(-100%); transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); padding: 80px 0 20px 0; border-right: 2px solid var(--border-color); overflow-y: auto; }
+        #sidebar-nav.active { transform: translateX(0); }
+        #sidebar-nav ul { list-style: none; padding: 0; }
+        #sidebar-nav ul li a { display: block; padding: 12px 25px; color: var(--text-color); text-decoration: none; font-size: 18px; border-left: 4px solid transparent; transition: background-color 0.2s ease, border-left-color 0.2s ease, color 0.2s ease; }
+        #sidebar-nav ul li a:hover { background-color: rgba(255, 255, 255, 0.05); border-left-color: var(--secondary-color); color: var(--secondary-color); }
+        #sidebar-nav ul li a.active { border-left-color: var(--primary-color); color: var(--primary-color); font-weight: bold; }
+
+        /* --- Overlay for Sidebar --- */
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1040; opacity: 0; transition: opacity 0.4s ease; }
+        #overlay.active { display: block; opacity: 1; }
+
+        /* --- Main Content Area --- */
+        .container { max-width: 850px; margin: 3rem auto; padding: 0 1rem; }
+        header h1 { font-family: var(--header-font); color: var(--primary-color); text-align: center; margin-bottom: 1.5rem; font-size: 24px; line-height: 1.5; opacity: 0; }
+        header p { text-align: center; margin-bottom: 3rem; font-size: 20px; color: var(--muted-text); }
+
+        /* --- Topic Cards --- */
+        .topic-card { background-color: var(--card-bg); border-radius: 0px; margin-bottom: 2.5rem; padding: 1.8rem; box-shadow: 4px 4px 0px 0px var(--border-color); border: 2px solid var(--border-color); scroll-margin-top: 90px; transition: transform 0.2s ease, box-shadow 0.2s ease; opacity: 0; transform: translateY(15px); }
+        .topic-card.animated { opacity: 1; transform: translateY(0); }
+        .topic-card:hover { transform: translate(2px, 2px); box-shadow: 2px 2px 0px 0px var(--border-color); }
+        .topic-card h2 { font-family: var(--header-font); color: var(--primary-color); font-size: 18px; margin-bottom: 1rem; display: flex; align-items: center; border-bottom: 2px solid var(--border-color); padding-bottom: 0.5rem; }
+        .topic-card h2 i { margin-right: 0.8rem; color: var(--primary-color); font-size: 20px; }
+        .topic-card h3 { color: var(--primary-color); margin-top: 1.5rem; margin-bottom: 0.8rem; font-weight: normal; font-size: 20px; text-decoration: underline; text-decoration-color: var(--border-color); }
+
+        /* Key Concept List Styles */
+        .topic-card > ul { list-style: none; padding-left: 5px; margin-top: 1rem; }
+         .topic-card > ul > li { margin-bottom: 0.7rem; position: relative; padding-left: 1.5rem; opacity: 1; /* VISIBLE BY DEFAULT */ }
+         .topic-card > ul > li::before { content: "■"; color: var(--primary-color); position: absolute; left: 0; top: 1px; font-size: 1em; }
+
+        /* Example/Collapsible List Item Styles (Initially Hidden) */
+        .topic-card .collapsible-content ul { list-style: none; padding-left: 5px; margin-top: 1rem; }
+        .topic-card .collapsible-content ul li { margin-bottom: 0.7rem; position: relative; padding-left: 1.5rem; opacity: 0; /* HIDDEN for animation */ }
+         .topic-card .collapsible-content ul li::before { content: "▶"; color: var(--secondary-color); position: absolute; left: 0; top: 1px; font-size: 0.9em; }
+
+        .topic-card code { background-color: var(--code-bg); color: #bee5d3; padding: 0.2em 0.5em; border-radius: 0; font-family: 'VT323', monospace; font-size: 1em; display: inline-block; border: 1px solid var(--border-color); }
+        .math-block { background-color: var(--code-bg); color: #bee5d3; padding: 1rem; border-radius: 0; margin: 1rem 0; font-family: 'VT323', monospace; white-space: pre-wrap; word-wrap: break-word; border: 2px solid var(--border-color); box-shadow: inset 2px 2px 0px 0px rgba(0,0,0,0.3); font-size: 1em; }
+        .mock-q { font-size: 0.9em; color: var(--muted-text); margin-top: 1.5rem; display: block; text-align: right; }
+
+        /* --- Table Styles --- */
+        .table-container { overflow-x: auto; margin: 1rem 0; border: 2px solid var(--border-color); box-shadow: 2px 2px 0px 0px var(--border-color); background-color: var(--code-bg); }
+        table.retro-table { width: 100%; min-width: 500px; border-collapse: collapse; font-size: 0.95em; color: var(--text-color); }
+        table.retro-table th, table.retro-table td { border: 1px solid var(--border-color); padding: 8px 10px; text-align: left; vertical-align: top; }
+        table.retro-table thead th { background-color: var(--card-bg); color: var(--primary-color); font-family: var(--header-font); font-size: 0.8em; text-align: center; border-bottom: 2px solid var(--border-color); }
+        table.retro-table tbody tr:nth-child(odd) { background-color: rgba(0,0,0,0.1); }
+        table.retro-table td:first-child { color: var(--secondary-color); }
+        table.retro-table td { white-space: normal; word-break: break-word; }
+
+
+        /* --- Interactive Elements --- */
+        .toggle-button { background-color: var(--secondary-color); color: #111; border: 2px solid #111; padding: 0.5rem 1rem; border-radius: 0px; cursor: pointer; font-weight: normal; margin-top: 1rem; transition: background-color 0.2s ease, color 0.2s ease, transform 0.1s ease; display: inline-flex; align-items: center; font-size: 1em; box-shadow: 2px 2px 0px 0px #111; }
+        .toggle-button i { margin-right: 0.6rem; transition: transform 0.4s ease; }
+        .toggle-button:hover { background-color: #fff8dc; }
+        .toggle-button:active { transform: translate(2px, 2px); box-shadow: none; }
+
+        .collapsible-content { max-height: 0; overflow: hidden; transition: max-height 0.6s ease-out; margin-top: 1rem; border-left: 3px solid transparent; padding: 0 1rem; background-color: rgba(0,0,0,0.15); border-radius: 0; }
+        .collapsible-content.active { max-height: 2500px; transition: max-height 1s ease-in; padding: 1.5rem 1rem; border-left-color: var(--secondary-color); }
+        .collapsible-content h4 { color: var(--secondary-color); margin-bottom: 0.8rem; font-weight: normal; font-size: 1em; text-decoration: underline; }
+        hr { border: none; height: 2px; background-color: var(--border-color); margin: 1.8rem 0; }
+
+        /* --- Footer --- */
+        footer { text-align: center; margin-top: 4rem; padding: 1.5rem; color: var(--muted-text); font-size: 1em; border-top: 2px solid var(--border-color); }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 991px) { body { padding-top: 65px; } #desktop-nav { display: none; } #mobile-header { display: flex; } }
+        @media (max-width: 768px) { body { font-size: 18px; } .container { margin-top: 2rem; } header h1 { font-size: 18px; } header p { font-size: 18px; } .topic-card { padding: 1.5rem; margin-bottom: 2rem; } .topic-card h2 { font-size: 16px; } .math-block, .topic-card code { font-size: 0.95em; } }
+        @media (max-width: 480px) { body { font-size: 16px; padding-top: 60px; } #mobile-header { padding: 0.6rem 0.8rem; } #menu-toggle { font-size: 20px; padding: 4px 8px; } #mobile-header-title { font-size: 12px; } #sidebar-nav { width: 220px; padding-top: 70px; } #sidebar-nav ul li a { font-size: 16px; padding: 10px 20px; } .container { padding: 0 0.8rem; } header h1 { font-size: 14px; } header p { font-size: 16px; margin-bottom: 2rem; } .topic-card { padding: 1.2rem; } .topic-card h2 { font-size: 14px; } .toggle-button { padding: 0.4rem 0.8rem; } .math-block, .topic-card code { font-size: 0.9em; } }
+
+    </style>
+</head>
+<body>
+    <!-- Desktop Nav -->
+    <nav id="desktop-nav">
+        <ul>
+            <li><a href="#probability">Probability</a></li>
+            <li><a href="#hypothesis">Hypothesis Testing</a></li>
+            <li><a href="#chi-square">Chi-Square</a></li>
+            <li><a href="#wilcoxon">Wilcoxon</a></li>
+            <li><a href="#regression">Regression</a></li>
+            <li><a href="#logistic">Logistic Reg</a></li>
+            <li><a href="#forecasting">Forecasting</a></li>
+            <li><a href="#decision">Decision Making</a></li>
+            <li><a href="#evaluation">Evaluation</a></li>
+            <li><a href="#parametric">Parametric</a></li>
+        </ul>
+    </nav>
+
+    <!-- Mobile Header -->
+     <div id="mobile-header">
+         <span id="mobile-header-title">Stats Quest</span>
+         <button id="menu-toggle"><i class="fas fa-bars"></i></button>
+     </div>
+
+     <!-- Sidebar Nav -->
+     <aside id="sidebar-nav">
+         <ul>
+            <li><a href="#probability">Probability</a></li>
+            <li><a href="#hypothesis">Hypothesis Testing</a></li>
+            <li><a href="#chi-square">Chi-Square</a></li>
+            <li><a href="#wilcoxon">Wilcoxon</a></li>
+            <li><a href="#regression">Regression</a></li>
+            <li><a href="#logistic">Logistic Reg</a></li>
+            <li><a href="#forecasting">Forecasting</a></li>
+            <li><a href="#decision">Decision Making</a></li>
+            <li><a href="#evaluation">Evaluation</a></li>
+            <li><a href="#parametric">Parametric</a></li>
+        </ul>
+     </aside>
+
+     <!-- Overlay -->
+     <div id="overlay"></div>
+
+
+    <div class="container">
+        <header>
+             <h1><i class="fas fa-ghost"></i> Stats Adventure Quest <i class="fas fa-gamepad"></i></h1>
+             <p>// Retro Pixel Edition // Master the Mocks!</p>
+        </header>
+
+        <!-- Topic Card Sections -->
+        <section id="probability" class="topic-card">
+             <h2><i class="fas fa-dice"></i>Probability: Independence Check</h2>
+             <p>Are variables X & Y playing their own game, or influencing each other? Let's find out.</p>
+             <h3>// Key Concepts //</h3>
+             <ul> <!-- This list is visible by default -->
+                 <li>Joint P(X=x, Y=y): Chance of BOTH.</li>
+                 <li>Marginal P(X=x): Chance of just X (sum over Y).</li>
+                 <li>Test: Independent if `P(x,y) == P(x) * P(y)` for ALL pairs.</li>
+             </ul>
+             <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example_Math.exe</button>
+             <div class="collapsible-content">
+                 <h4>Example_Quest:</h4>
+                 <p>Joint PMF: P(1,1)=0.1, P(1,2)=0.2, P(2,1)=0.3, P(2,2)=0.4. Independent?</p>
+                 <h4>Solution_Steps:</h4>
+                 <p>1. Calc Marginals:</p>
+                 <div class="math-block">
+P(X=1) = 0.1 + 0.2 = 0.3
+P(X=2) = 0.3 + 0.4 = 0.7
+
+P(Y=1) = 0.1 + 0.3 = 0.4
+P(Y=2) = 0.2 + 0.4 = 0.6
+                 </div>
+                 <p>2. Test P(1, 1):</p>
+                 <div class="math-block">
+Is P(1, 1) == P(X=1) * P(Y=1) ?
+Is 0.1 == 0.3 * 0.4 ?
+Is 0.1 == 0.12 ? >> NO.
+                 </div>
+                 <p><strong>Output:</strong> Variables are DEPENDENT.</p>
+                 <p>Further details:</p>
+                 <ul> <!-- List items inside collapsible, start hidden -->
+                     <li>This failure means dependence.</li>
+                     <li>No need to check other pairs.</li>
+                     <li>Independence requires equality for ALL combinations.</li>
+                 </ul>
+             </div>
+             <small class="mock-q">// Ref: Q1</small>
+         </section>
+
+        <section id="hypothesis" class="topic-card">
+             <h2><i class="fas fa-gavel"></i>Hypothesis Test: The Verdict</h2>
+             <p>Using data evidence to judge a claim (the Null Hypothesis).</p>
+             <h3>// Key Players //</h3>
+             <ul>
+                 <li>H₀: The default claim (no effect).</li>
+                 <li>Hₐ: The challenge (is effect).</li>
+                 <li>Test Stat: Evidence score.</li>
+                 <li>p-value: Chance of evidence if H₀ true.</li>
+                 <li>Alpha (α): Your 'doubt' threshold (e.g., 0.05).</li>
+                 <li>Rule: If `p < α`, Reject H₀.</li>
+             </ul>
+             <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example.exe</button>
+             <div class="collapsible-content">
+                 <h4>Example_Quest:</h4>
+                 <p>Claim: Avg time <= 5 min. Sample avg = 5.8 min. p-value = 0.027. Use α = 0.05.</p>
+                 <h4>Solution_Steps:</h4>
+                 <p>1. Hypotheses:</p>
+                 <div class="math-block">
+H₀: μ ≤ 5
+Hₐ: μ > 5
+                 </div>
+                 <p>2. Compare:</p>
+                 <div class="math-block">
+p-value (0.027) < α (0.05) >> YES.
+                 </div>
+                 <p><strong>Output:</strong> Reject H₀. Evidence supports avg time > 5 min.</p>
+                 <p>Notes:</p>
+                 <ul>
+                    <li>Rejecting H0 doesn't prove H_a is true, just that H0 is unlikely.</li>
+                    <li>Failing to reject H0 doesn't mean H0 is true, just not enough evidence.</li>
+                 </ul>
+             </div>
+             <small class="mock-q">// Ref: Q2, Q3, Q4, Q5</small>
+         </section>
+
+         <section id="chi-square" class="topic-card">
+             <h2><i class="fas fa-th"></i>Chi-Square Tests: Category Check</h2>
+             <p>Comparing observed counts to expected counts in tables.</p>
+             <h3>// Flavors & Formula //</h3>
+             <code>χ² = Σ [ (Obs - Exp)² / Exp ]</code>
+             <ul>
+                 <li>Independence: Related? Exp=(Row*Col)/Grand. DoF=(r-1)(c-1).</li>
+                 <li>Goodness-of-Fit: Match pattern? Exp=Hypothesis. DoF=(k-1).</li>
+             </ul>
+             <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Examples_Math.exe</button>
+             <div class="collapsible-content">
+                 <h4>Example_Quest (GoF):</h4>
+                 <p>Claim: 4 drinks equal preference. N=80. Obs: A(25), B(15), C(22), D(18). Calc χ².</p>
+                 <h4>Solution_Steps (GoF):</h4>
+                 <p>1. H₀: P_A=P_B=P_C=P_D=0.25. Hₐ: Not equal.</p>
+                 <p>2. Expected: 80/4 = 20 per drink.</p>
+                 <p>3. Calc χ² parts:</p>
+                 <div class="math-block">
+A: (25-20)²/20 = 1.25
+B: (15-20)²/20 = 1.25
+C: (22-20)²/20 = 0.20
+D: (18-20)²/20 = 0.20
+                 </div>
+                 <p>4. Sum:</p>
+                 <div class="math-block">χ² = 1.25 + 1.25 + 0.20 + 0.20 = 2.90</div>
+                 <p><strong>Output:</strong> χ² = 2.90 (DoF=3).</p>
+                 <ul>
+                    <li>Compare this to a critical value from χ² table with DoF=3 and chosen α.</li>
+                 </ul>
+                 <hr>
+                 <h4>Example_Hint (Independence):</h4>
+                 <p>Cell(1,1): Obs=50. RowT=120, ColT=80, GrandT=300.</p>
+                 <div class="math-block">
+Exp(1,1) = (120*80)/300 = 32
+Contrib(1,1) = (50-32)²/32 = 10.125
+                 </div>
+                 <p>(Sum contributions for all cells).</p>
+             </div>
+             <small class="mock-q">// Ref: Q2, Q3</small>
+         </section>
+
+        <section id="wilcoxon" class="topic-card">
+             <h2><i class="fas fa-sort-amount-down"></i>Wilcoxon Test: Rank Check</h2>
+            <p>Non-parametric test using ranks for related data or vs median.</p>
+            <h3>// The_Mission //</h3>
+            <ul>
+                 <li>Calc Diffs. Ignore 0s. Rank |Diffs| (Avg ties). Sum (+)Ranks (W+), |(-)Ranks| (W-).</li>
+                <li>H₀: Median difference = 0.</li>
+            </ul>
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example_Math.exe</button>
+            <div class="collapsible-content">
+                <h4>Example_Quest (Paired):</h4>
+                <p>Scores Before->After: E1:70->75, E2:60->68, E3:80->78, E4:65->65. Calc W+.</p>
+                <h4>Solution_Steps:</h4>
+                <p>Table of Calculations:</p>
+                <div class="table-container">
+                    <table class="retro-table">
+                        <thead>
+                            <tr><th>Employee</th><th>Before</th><th>After</th><th>Difference</th><th>|Abs Diff|</th><th>Rank</th><th>Signed Rank</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>1</td><td>70</td><td>75</td><td>+5</td><td>5</td><td>2</td><td>+2</td></tr>
+                            <tr><td>2</td><td>60</td><td>68</td><td>+8</td><td>8</td><td>3</td><td>+3</td></tr>
+                            <tr><td>3</td><td>80</td><td>78</td><td>-2</td><td>2</td><td>1</td><td>-1</td></tr>
+                            <tr><td>4</td><td>65</td><td>65</td><td>0</td><td>(Ignore)</td><td>-</td><td>-</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Explanation: n=3. Ranks of |Diffs|={5,8,2} are {2,3,1}.</p>
+                 <p>Calc W+:</p>
+                <div class="math-block">W+ = Sum(+)Ranks = 2 + 3 = 5</div>
+                 <p><strong>Output:</strong> W+ = 5.</p>
+                 <ul>
+                    <li>The test statistic is usually the smaller of W+ and W- (which is W-=1 here).</li>
+                    <li>Compare test statistic to critical value for n=3.</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q4, Q5, Q23, Q25, Q26</small>
+        </section>
+
+        <section id="regression" class="topic-card">
+             <h2><i class="fas fa-chart-line"></i>Regression: Line Fitter</h2>
+            <p>Using lines to predict Y from X and check model fit.</p>
+            <h3>// Key_Concepts //</h3>
+            <ul>
+                <li>SLR: `Y = β₀ + β₁X`.</li>
+                <li>Slope β₁: Change Y per unit X.</li>
+                <li>Adj R²: Better model compare tool.</li>
+            </ul>
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example_Math.exe</button>
+            <div class="collapsible-content">
+                <h4>Example_Quest (SLR):</h4>
+                <p>Model: `Sales = 10 + 2.5 * Temp`. Predict for Temp=20. Slope meaning?</p>
+                <h4>Solution_Steps:</h4>
+                <p>1. Predict:</p>
+                 <div class="math-block">Sales = 10 + 2.5 * (20) = 10 + 50 = 60</div>
+                 <p>Output: Predicted sales = 60.</p>
+                 <p>2. Slope Meaning (β₁ = 2.5):</p>
+                 <p>Each 1°C increase in Temp predicts a <strong>2.5 unit</strong> increase in Sales.</p>
+                 <ul>
+                    <li>β₀=10 is the predicted sales at 0°C.</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q6, Q18, Q21</small>
+        </section>
+
+        <section id="logistic" class="topic-card">
+             <h2><i class="fas fa-toggle-on"></i>Logistic Reg: Odds Predictor</h2>
+            <p>Predicting Yes/No (1/0) outcomes via log-odds.</p>
+            <h3>// How_It_Works //</h3>
+            <ul>
+                <li>Model: `Log-odds = β₀ + β₁X₁...`</li>
+                <li>Coef β₁: 1-unit X increase multiplies *ODDS* by `exp(β₁)`.</li>
+                <li>Convert: `Prob = 1 / (1 + exp(-LogOdds))`.</li>
+            </ul>
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example_Math.exe</button>
+            <div class="collapsible-content">
+                <h4>Example_Quest:</h4>
+                <p>Model: `LogOdds = 5 - 0.01*Score`. Calc LogOdds & Prob for Score=600. Interpret coef -0.01.</p>
+                <h4>Solution_Steps:</h4>
+                 <p>1. Calc LogOdds:</p>
+                 <div class="math-block">LogOdds = 5 - 0.01 * (600) = 5 - 6 = -1</div>
+                 <p>2. Calc Prob (p):</p>
+                 <div class="math-block">
+p = 1 / (1 + exp(-(-1))) = 1 / (1 + exp(1))
+p = 1 / (1 + 2.718) = 1 / 3.718 ≈ 0.269
+                 </div>
+                <p>Output: Prob ≈ 26.9%.</p>
+                 <p>3. Interpret Coef (β₁ = -0.01):</p>
+                 <p>Each 1 point Score increase multiplies *odds* of default by `exp(-0.01)` ≈ 0.99 (odds decrease ~1%).</p>
+                 <ul>
+                    <li>Odds = p / (1-p).</li>
+                    <li>Log-odds = ln(Odds).</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q7, Q8, Q17, Q19, Q20</small>
+        </section>
+
+        <section id="forecasting" class="topic-card">
+             <h2><i class="fas fa-history"></i>Forecasting: Future Gazer</h2>
+            <p>Using past data to predict what's next.</p>
+            <h3>// Common_Tools //</h3>
+            <ul>
+                <li>Simple Avg: Mean of all past data.</li>
+                <li>Weighted Avg: Σ (Weight * Value).</li>
+                <li>Exp Smoothing: `NewF = α*Actual + (1-α)*OldF`.</li>
+            </ul>
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Examples_Math.exe</button>
+            <div class="collapsible-content">
+                <h4>Example_Quest (Weighted Avg):</h4>
+                <p>Sales (recent first): 100, 90, 110. Weights: 0.5, 0.3, 0.2. Forecast?</p>
+                 <h4>Solution:</h4>
+                 <div class="math-block">
+Forecast = (0.5*100) + (0.3*90) + (0.2*110)
+Forecast = 50 + 27 + 22 = 99
+                 </div>
+                 <hr>
+                <h4>Example_Quest (Exp Smoothing):</h4>
+                <p>LastF=500, Actual=550. Use α=0.2. New Forecast?</p>
+                <h4>Solution:</h4>
+                <div class="math-block">
+NewF = 0.2*(550) + (1-0.2)*(500)
+NewF = 110 + 0.8*500 = 110 + 400 = 510
+                 </div>
+                  <ul>
+                    <li>Alpha (α) controls smoothing. High α = more reactive.</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q10, Q11, Q12, Q13, Q27</small>
+        </section>
+
+        <section id="decision" class="topic-card">
+             <h2><i class="fas fa-project-diagram"></i>Decision Making: Path Chooser</h2>
+            <p>Choosing actions with uncertain or risky futures.</p>
+            <h3>// Strategies //</h3>
+            <ul>
+                <li>Maximax: Optimist (Max of Maxes).</li>
+                <li>Maximin: Pessimist (Max of Mins).</li>
+                <li>Hurwicz(α): Mix (Max of `α*Best+(1-α)*Worst`).</li>
+                <li>EMV: Risk (Max of `Σ(Prob*Payoff)`).</li>
+            </ul>
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Example_Math.exe</button>
+            <div class="collapsible-content">
+                 <h4>Example_Quest:</h4>
+                 <p>Payoff Table ($k):</p>
+                 <div class="table-container">
+                     <table class="retro-table">
+                         <thead>
+                             <tr><th>Action</th><th>S1 (P=0.6)</th><th>S2 (P=0.4)</th><th>Max Payoff</th><th>Min Payoff</th><th>Hurwicz (α=0.7)</th><th>EMV</th></tr>
+                         </thead>
+                         <tbody>
+                             <tr><td>A1</td><td>100</td><td>20</td><td>100</td><td>20</td><td>76</td><td>68</td></tr>
+                             <tr><td>A2</td><td>50</td><td>80</td><td>80</td><td>50</td><td>71</td><td>62</td></tr>
+                         </tbody>
+                     </table>
+                 </div>
+                 <p>Calculation Details:</p>
+                  <div class="math-block">
+# Hurwicz(A1) = 0.7*100 + 0.3*20 = 76
+# Hurwicz(A2) = 0.7*80 + 0.3*50 = 71
+
+# EMV(A1) = 0.6*100 + 0.4*20 = 68
+# EMV(A2) = 0.6*50 + 0.4*80 = 62
+                  </div>
+                 <h4>Outputs by Criterion:</h4>
+                 <ul>
+                    <li>Maximax: Choose A1 (Max=100).</li>
+                    <li>Maximin: Choose A2 (MaxMin=50).</li>
+                    <li>Hurwicz(α=0.7): Choose A1 (MaxH=76).</li>
+                    <li>EMV: Choose A1 (MaxEMV=68).</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q14, Q15, Q16, Q28, Q30</small>
+        </section>
+
+        <section id="evaluation" class="topic-card">
+             <h2><i class="fas fa-tasks"></i>Evaluation: Model Grader</h2>
+            <p>Checking how well classification models perform.</p>
+             <h3>// Key_Metrics //</h3>
+            <ul>
+                <li>Precision: `TP / (TP + FP)`.</li>
+                <li>Recall: `TP / (TP + FN)`.</li>
+                <li>F1-Score: `2*(Prec*Rec)/(Prec+Rec)`.</li>
+            </ul>
+             <h3>// Decision_Trees //</h3> Split data on features for purity (Info Gain/Gini).
+            <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>F1_Example_Math.exe</button>
+            <div class="collapsible-content">
+                 <h4>Example_Quest (F1):</h4>
+                 <p>Confusion Matrix:</p>
+                 <div class="table-container">
+                     <table class="retro-table">
+                         <thead>
+                             <tr><th></th><th>Actual Positive</th><th>Actual Negative</th></tr>
+                         </thead>
+                         <tbody>
+                             <tr><td>Predicted Positive</td><td>80 (TP)</td><td>20 (FP)</td></tr>
+                             <tr><td>Predicted Negative</td><td>10 (FN)</td><td>90 (TN)</td></tr>
+                         </tbody>
+                     </table>
+                 </div>
+                 <p>Calculate F1-Score.</p>
+                 <h4>Solution_Steps:</h4>
+                 <p>1. Precision:</p>
+                 <div class="math-block">Prec = TP / (TP + FP) = 80 / (80+20) = 0.80</div>
+                 <p>2. Recall:</p>
+                 <div class="math-block">Rec = TP / (TP + FN) = 80 / (80+10) ≈ 0.889</div>
+                 <p>3. F1-Score:</p>
+                 <div class="math-block">F1 = 2*(Prec*Rec)/(Prec+Rec)
+F1 = 2*(0.80*0.889)/(0.80+0.889) ≈ 0.842</div>
+                <p><strong>Output:</strong> F1 ≈ 0.842.</p>
+                 <ul>
+                    <li>High F1 means good balance of precision and recall.</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q9, Q29</small>
+        </section>
+
+        <section id="parametric" class="topic-card">
+             <h2><i class="fas fa-flask"></i>Parametric vs Non-Parametric</h2>
+            <p>Parametric tests need data assumptions (e.g., normal); Non-parametric are flexible.</p>
+            <h3>// The_Difference //</h3>
+            <ul>
+                <li>Parametric: Assume distribution (t-test).</li>
+                <li>Non-Parametric: Fewer assumptions (Wilcoxon).</li>
+            </ul>
+             <button class="toggle-button" aria-expanded="false"><i class="fas fa-chevron-down"></i>Selection_Example.exe</button>
+             <div class="collapsible-content">
+                 <h4>Example_Quest:</h4>
+                 <p>Compare median income (skewed data) between 2 cities (independent samples). Which test?</p>
+                 <ol>
+                     <li>Independent t-test</li>
+                     <li>Mann-Whitney U test</li>
+                 </ol>
+                 <h4>Solution:</h4>
+                 <p>Skewed data violates t-test normality. Mann-Whitney U is the non-parametric alternative for independent samples.</p>
+                 <p><strong>Output:</strong> Choose Mann-Whitney U test (Option 2).</p>
+                  <ul>
+                    <li>Non-parametric tests often use ranks.</li>
+                 </ul>
+            </div>
+            <small class="mock-q">// Ref: Q22, Q23, Q24</small>
+        </section>
+
+
+    </div><!-- End Container -->
+
+    <footer>
+        <i class="fas fa-save"></i> Progress Saved... Keep Questing! <i class="fas fa-dungeon"></i>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const sidebar = document.getElementById('sidebar-nav');
+            const menuToggle = document.getElementById('menu-toggle');
+            const overlay = document.getElementById('overlay');
+            const sidebarLinks = sidebar.querySelectorAll('a');
+            const allNavLinks = document.querySelectorAll('#desktop-nav a, #sidebar-nav a'); // Combined
+
+            // --- Sidebar Toggle Logic ---
+            const toggleSidebar = () => {
+                const isActive = sidebar.classList.contains('active');
+                anime({ targets: sidebar, translateX: isActive ? '-100%' : '0%', duration: 400, easing: 'easeOutCubic' });
+                anime({ targets: overlay, opacity: isActive ? 0 : 1, duration: 400, easing: 'easeOutCubic',
+                    begin: () => { if (!isActive) overlay.style.display = 'block'; },
+                    complete: () => { if (isActive) overlay.style.display = 'none'; }
+                });
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            };
+
+            if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+            if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+            // --- Smooth Scroll Function ---
+            const smoothScrollTo = (targetElement) => {
+                 const navHeightMobile = document.getElementById('mobile-header')?.offsetHeight || 65;
+                 const headerOffset = navHeightMobile + 15;
+                 const elementPosition = targetElement.getBoundingClientRect().top;
+                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                 window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
+
+            // Close sidebar when a link is clicked & Animate link click
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    // Always prevent default jump first to handle animation/scroll manually
+                    e.preventDefault();
+                    const targetHref = link.getAttribute('href');
+                    const targetElement = document.querySelector(targetHref);
+
+                    if (sidebar.classList.contains('active')) {
+                         toggleSidebar(); // Close sidebar
+
+                         // Animate link background and scroll after sidebar closes
+                         anime({
+                             targets: link,
+                             backgroundColor: ['rgba(255,255,255,0.1)', 'rgba(255,255,255,0)'],
+                             duration: 300, easing: 'linear',
+                             complete: () => { if (targetElement) smoothScrollTo(targetElement); }
+                         });
+                    } else {
+                        // If sidebar already closed, just scroll
+                         if (targetElement) smoothScrollTo(targetElement);
+                    }
+                     // Update active state (observer might be slightly delayed)
+                     allNavLinks.forEach(lnk => lnk.classList.remove('active'));
+                     link.classList.add('active');
+                      // Also update corresponding desktop link if it exists
+                     const desktopLink = document.querySelector(`#desktop-nav a[href="${targetHref}"]`);
+                     if(desktopLink) desktopLink.classList.add('active');
+                });
+            });
+
+             // Handle desktop link clicks for smooth scroll
+             document.querySelectorAll('#desktop-nav a').forEach(link => {
+                 link.addEventListener('click', (e) => {
+                     e.preventDefault();
+                     const targetElement = document.querySelector(link.getAttribute('href'));
+                     if (targetElement) {
+                         const navHeightDesktop = document.getElementById('desktop-nav')?.offsetHeight || 70;
+                         const headerOffset = navHeightDesktop + 15;
+                         const elementPosition = targetElement.getBoundingClientRect().top;
+                         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                         window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                           // Update active state
+                         allNavLinks.forEach(lnk => lnk.classList.remove('active'));
+                         link.classList.add('active');
+                         // Also update corresponding sidebar link if it exists
+                         const sidebarLink = document.querySelector(`#sidebar-nav a[href="${link.getAttribute('href')}"]`);
+                         if(sidebarLink) sidebarLink.classList.add('active');
+                     }
+                 });
+             });
+
+
+            // --- Anime.js Animations ---
+            anime({ targets: 'header h1', opacity: [0, 1], translateY: [-15, 0], delay: 200, duration: 800, easing: 'easeOutExpo' });
+
+            const cardObserverOptions = { root: null, rootMargin: '0px 0px -10% 0px', threshold: 0.1 };
+            const cardObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting && !entry.target.classList.contains('animated')) {
+                        anime({ targets: entry.target, opacity: [0, 1], translateY: [15, 0], duration: 500, delay: index * 50, easing: 'easeOutCubic',
+                            complete: () => entry.target.classList.add('animated')
+                        });
+                    }
+                });
+            }, cardObserverOptions);
+            document.querySelectorAll('.topic-card').forEach(card => cardObserver.observe(card));
+
+
+            // --- Collapsible Content & List Item Animation ---
+            const toggleButtons = document.querySelectorAll('.toggle-button');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('i');
+                    const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+                    anime({ targets: this, scale: [1, 0.95, 1], duration: 150, easing: 'easeInOutQuad' });
+
+                    if (content.classList.contains('collapsible-content')) {
+                         if (isExpanded) {
+                            content.style.maxHeight = '0px';
+                            content.style.paddingTop = '0';
+                            content.style.paddingBottom = '0';
+                            this.setAttribute('aria-expanded', 'false');
+                            icon.style.transform = 'rotate(0deg)';
+                            setTimeout(() => content.classList.remove('active'), 600);
+
+                             const listItems = content.querySelectorAll('ul > li');
+                             if(listItems.length > 0) { anime.remove(listItems); listItems.forEach(li => li.style.opacity = 0); }
+
+                        } else {
+                            content.classList.add('active');
+                            content.style.paddingTop = '1.5rem';
+                            content.style.paddingBottom = '1.5rem';
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            this.setAttribute('aria-expanded', 'true');
+                            icon.style.transform = 'rotate(180deg)';
+
+                             const listItems = content.querySelectorAll('.collapsible-content ul > li'); // Target specific list
+                             if (listItems.length > 0) {
+                                 // Ensure items are hidden before animating
+                                 listItems.forEach(li => li.style.opacity = 0);
+                                 anime({
+                                     targets: listItems,
+                                     opacity: [0, 1], translateX: [-10, 0],
+                                     delay: anime.stagger(40, { start: 150 }),
+                                     duration: 350, easing: 'easeOutCubic'
+                                 });
+                             }
+                        }
+                    }
+                });
+            });
+
+            // --- Active Nav Link on Scroll (Combined Logic) ---
+             const sections = document.querySelectorAll('.topic-card');
+             let currentNavHeight = window.innerWidth < 992 ? (document.getElementById('mobile-header')?.offsetHeight || 65) : (document.getElementById('desktop-nav')?.offsetHeight || 70);
+             let sectionObserver;
+
+             const observerCallback = (entries, observer) => {
+                  let mostVisibleSectionId = null;
+                  let maxRatio = 0;
+                   // Find the section that is most visible within the activation margin
+                  entries.forEach(entry => {
+                      if (entry.isIntersecting && entry.intersectionRatio > maxRatio) {
+                          maxRatio = entry.intersectionRatio;
+                          mostVisibleSectionId = entry.target.getAttribute('id');
+                      }
+                  });
+
+                  // Update active classes on ALL nav links based on the most visible section
+                  allNavLinks.forEach(link => {
+                      link.classList.remove('active');
+                      if (mostVisibleSectionId && link.getAttribute('href') === `#${mostVisibleSectionId}`) {
+                          link.classList.add('active');
+                      }
+                  });
+             };
+
+              const createObserver = () => {
+                 currentNavHeight = window.innerWidth < 992 ? (document.getElementById('mobile-header')?.offsetHeight || 65) : (document.getElementById('desktop-nav')?.offsetHeight || 70);
+                  const observerOptions = {
+                     root: null,
+                     rootMargin: `-${currentNavHeight + 10}px 0px -40% 0px`, // Recalculate margin
+                     threshold: 0 // Trigger as soon as element enters/leaves margin
+                 };
+                 if (sectionObserver) sectionObserver.disconnect(); // Disconnect previous if exists
+                 sectionObserver = new IntersectionObserver(observerCallback, observerOptions);
+                 sections.forEach(section => sectionObserver.observe(section));
+             };
+
+             createObserver(); // Create initial observer
+
+             // Re-initialize observer on resize
+             let resizeTimeout;
+             window.addEventListener('resize', () => {
+                 clearTimeout(resizeTimeout);
+                 resizeTimeout = setTimeout(createObserver, 250); // Recreate observer after resize settles
+             });
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+</html>
